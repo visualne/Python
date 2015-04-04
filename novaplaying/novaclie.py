@@ -81,6 +81,8 @@ class OpenStackClient():
     #         except:
     #             self.connect_glance()
 
+
+
 if __name__ == "__main__":
     logging.basicConfig(format='%(asctime)s %(levelname)s %(name)s %(message)s')
     LOG.setLevel(logging.INFO)
@@ -95,21 +97,72 @@ if __name__ == "__main__":
     #Creating nova object that will be used to interact with nova apis
     nova = osc.connect_nova()
 
-    # List all servers per hypervisor
+    #Creating keystone object that will be used to interact with the keystone apis
+    keystone = osc.connect_keystone()
+
+    #Creating empty dictionary that will hold the tenant_id to name mapping
+    tenantDictionary = {}
+
+    #Instance to hypervisor dictionary in format. {Hypervisor:instance1,instance2,instance3}
+    instanceToHypervisor = {}
+
+    #Creating dictionary holding keystone tenant id and keystone tenant name.
+    for val in keystone.tenants.list():
+        #Filling dicionary
+        tenantDictionary[val.id] = val.name
+
+        #Determining the uuid of the Garrett tenant. We will need this later, this tenat will also be
+        #used as input from the user later
+        if tenantDictionary[val.id] == 'Garrett':
+            tenant_id = val.id
+
+    
+    #List all servers per hypervisor
     for h in nova.hypervisors.list():
 
         #Putting the below in a try catch, just in the event there is something strange with the compute services, and
         #values are returned.
         try:
-            #Creating list of what instances are on the hypervisor in question
-            servers = nova.hypervisors.search(h.hypervisor_hostname,True)[0].servers
+            # #Creating list of what instances are on the hypervisor in question
+            instances = nova.hypervisors.search(h.hypervisor_hostname,True)[0].servers
 
-            #Printing hypervisor name and what instances are currently on it.
-            print h.hypervisor_hostname + ' has the following instances on it: \n ' + str(servers)
+            #List that will hold instances associated with a tenant on a specific hypervisor. This list will be 
+            #associated as a value in the instanceToHypervisor dictionary
+            tenantInstances = []
+
+            #For loop to look at each instance on the hypervisor and determine if it is in the tenant in question
+            for instance in instances:
+                #If a tenant_id associated with an instance matches the original tenant_id the user submitted, a dictionary will be filled.
+                if nova.servers.get(instance['uuid']).tenant_id == tenant_id:
+                    #Filling tenantInstance list
+                    tenantInstances.append(nova.servers.get(instance['uuid']).human_id)
+
+                    #Printing uuid of the instance in the specific tenant and the hypervisor that it is on.
+                    print nova.servers.get(instance['uuid']).human_id + ' is on hypervisor: ' + h.hypervisor_hostname
+
+            #Filling instanceToHypervisor dictionary. This holds the instance to hypervisor mapping for a specifc tenant
+            #For example vm1,vm2,vm3 are in tenant Microsoft. vm1 exists on hypervisor1, vm2 and vm3 exists on hypervisor2
+            #so the dictionary will look like this instanceToHypervisor['hypervisor1'] = ['vm1'], instanceToHypervisor['hypervisor1'] = ['vm2','vm3']
+            if tenantInstances:
+                #Filling hypervisor to instance dictionary
+                instanceToHypervisor[h.hypervisor_hostname] = tenantInstances
+
         except:
             pass
 
-    #Add functionality to determine what tenants instances are on what hypervisors
+    #this dictionary holds the instances associated with a specific tenant and what hypervisor they are on
+    #with the dictionary below we can create the linux commands to run on the hypervisor determine
+    #the qv interface attached to br-int on the hypervisor
+    print instanceToHypervisor
+
+
+
+    #Logic here to push down ovs command to appropriate hypervisors
+    #-ssh to the hypervisor in question
+    #-cat /var/lib/nova/instances/INSTANCE_ID/libvirt.xml | grep bridge
+    #-store the output of the above command in a variable ex) qbr7b8da7ed-66
+    #-Make a new variable called switchPort that will be the be of the format qvo7b8da7ed-66
+    #-Create appropriate ovs commands for the appropriate hypervisor
 
 
 
