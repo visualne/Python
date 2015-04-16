@@ -1,6 +1,6 @@
 from keystoneclient.v2_0 import client as keystone_client
 from novaclient import client as nova_client
-
+from neutronclient.v2_0 import client as neutron_client
 
 class OpenStackClient():
 
@@ -40,20 +40,20 @@ class OpenStackClient():
             except:
                 self.connect_nova()
     
-    # ''' Method to connect to quantum and get a client reference '''
-    # def connect_quantum(self):
-    #     self.quantum = quantum_client.Client(username=self.user, password=self.password, tenant_name=self.tenant_name, auth_url=self.auth_url, no_cache=True)
-    #     return self.quantum 
-
-    # ''' Method to verify the connection to quantum '''
-    # def _verify_quantum(self):
-    #     if not self.quantum:
-    #         self.connect_quantum()
-    #     else:
-    #         try:
-    #             self.quantum.list_networks()
-    #         except:
-    #             self.connect_quantum()
+    ''' Method to connect to neutron and get a client reference '''
+    def connect_neutron(self):
+        self.neutron = neutron_client.Client(username=self.user, password=self.password, tenant_name=self.tenant_name, auth_url=self.auth_url, no_cache=True)
+        return self.neutron
+    
+    ''' Method to verify the connection to neutron '''
+    def _verify_neutron(self):
+        if not self.neutron:
+            self.connect_neutron()
+        else:
+            try:
+                self.neutron.list_networks()
+            except:
+                self.connect_neutron()
 
 
     # ''' Method to connect to glance and get a client reference '''

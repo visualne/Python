@@ -5,44 +5,27 @@ from ansibleWrap import ansibleWrap
 from OpenStackClient import OpenStackClient
 
 
-def qbrGet(hypinstqbr):
+def qbrGet(hypinstqbr,nova,neutron):
     '''This function needs to be changed to use the neutron command line utility.
     The command line can give you port ids associated with an instance'''
     '''This port id associated with an instance is used to create the qvo port on the bridge.'''
-    #Left OFF HERE. NEED TO  TO SSH INTO VM AND STORE RESULT IN VARIABLE. THIS RESULT
-    #WILL THEN BE USED TO CRAFT THE OVS COMMAND NECESSARY TO RUN ON THE HYPERVISOR YOU HAVE SSH'D INTO
+        #Creating neutron object that will be used to interact with the neutron apis.
 
-    #Lots of dependencies here. 
-    #The inventory file needs to be in place
-    #Creating it quickly below. A better solution will need to be to come up with later. 
-    #ALSO DNS NEEDS TO BE IN PLACE FOR THE HOSTNAMES OF THE HYPERVISORS.
-    f = open('/Users/none/ansible_hosts','w')
 
-    for hypervisor in hypinstqbr.keys():
-        f.write(hypervisor + '  ansible_ssh_user=root\n')
+    #Able to grab the network and ip address of vm with this command
+    #Only grabbing the network for right now this will need to change later. As of right now
+    #It is grabbing the private ip address of the first nic only, later on ability will need to be added
+    #so multiple nics can be looked at.
+    # I just realized you probably should populate the hypinstqbrdictionary with the private ip address of the vm
+    privateIP = nova.servers.list()[1].networks.values()[0][0]
 
-    #Closing file handler
-    f.close()
 
+    #Take IP address found above and search through the list of dictonarys for it. Print the dictionary that it is associated with
     
-    for host in hypinstqbr.keys():
-    #The below for loop crafts the command that will be run on each of the hypervisors. This command
-    #is only used to determine the abr ports associated with the instances.
-
-        for instance in hypinstqbr[host]:
-            #Change logic below to actually ssh into the vm and execute this command and then store
-            #the result into a variable
-            bridgeIntCmd = 'cat /var/lib/nova/instances/' + instance + '/libvirt.xml | egrep -o qbr........... | sed \'s/qbr/qvo/\''
-
-            #Actually filling the qbr port associated with the instance in the hypinsqbr dictionary
-            a = ansibleWrap()
-            #The below output contains the qvo port associated with the instance
-
-            qvoPort = a.runCommand(bridgeIntCmd)['contacted'][host]['stdout']
-            print 'Instance: ' + instance + ' has qvo port: ' + qvoPort + ' assigned to it.'
-
-            #Filling in qvo port section of dictionary
-            hypinstqbr[host][instance] = qvoPort
+    for val in neutron.list_ports()['ports']:
+        for ip in val['fixed_ips']:
+            if ip.values()[1] == privateIP:
+                print 'match found'
 
             #print int hypinstqbr dictionary after qvo port was added to a particular instance
 
@@ -77,6 +60,9 @@ if __name__ == "__main__":
 
     #Creating keystone object that will be used to interact with the keystone apis
     keystone = osc.connect_keystone()
+
+    #Creating neutron object that will be used to interact with the neutron apis.
+    neutron = osc.connect_neutron()
 
     #Creating empty dictionary that will hold the tenant_id to name mapping
     tenantDictionary = {}    
@@ -134,6 +120,10 @@ if __name__ == "__main__":
                     #Printing uuid of the instance in the specific tenant and the hypervisor that it is on.
                     print nova.servers.get(instance['uuid']).human_id + ' is on hypervisor: ' + h.hypervisor_hostname
 
+                    #Left off here. You will need to take advantage of below call to grab the first private ip address
+                    #associated with the instance and add it to the dictionary to be used later
+                    print nova.servers.get(instance['uuid']).networks
+
             #Filling hypinstqbr dictionary. This holds the instance to hypervisor mapping for a specifc tenant
             #For example vm1,vm2,vm3 are in tenant Microsoft. vm1 exists on hypervisor1, vm2 and vm3 exists on hypervisor2
             #so the dictionary will look like this hypinstqbr['hypervisor1'] = ['vm1'], hypinstqbr['hypervisor1'] = ['vm2','vm3']
@@ -163,7 +153,7 @@ if __name__ == "__main__":
     # }
 
     #go get qbr ports!
-    print qbrGet(hypinstqbr)
+    # print qbrGet(hypinstqbr,nova,neutron)
 
 
 
@@ -179,12 +169,6 @@ if __name__ == "__main__":
     #     "instanceId4": 'qbr4b2d32ef-26',
     #     "instanceId5": 'qbr4a2d12ef-76'
     # }
-
-
-
-    #-store the output of the above command in a variable ex) qbr7b8da7ed-66
-    #-Make a new variable called switchPort that will be the be of the format qvo7b8da7ed-66
-    #-Create appropriate ovs commands for the appropriate hypervisor
 
 
 
