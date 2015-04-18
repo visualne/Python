@@ -42,9 +42,6 @@ if __name__ == "__main__":
     # }
     hypinstqbr = {}
 
-    #Creating bridge interfaces list used to store all of the bridge interfaces
-    bridgeInterfaces = []
-
     #Creating dictionary holding keystone tenant id and keystone tenant name.
     for val in keystone.tenants.list():
         #Filling dicionary
