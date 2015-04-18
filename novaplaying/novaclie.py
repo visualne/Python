@@ -3,16 +3,40 @@ import logging
 from ConfigParser import SafeConfigParser
 from ansibleWrap import ansibleWrap
 from OpenStackClient import OpenStackClient
+import argparse
 
 
 if __name__ == "__main__":
 
-    KEYSTONE_URL = "http://192.168.1.220:5000/v2.0/"
-    USERNAME = "admin"
-    PASSWORD = "password"
-    TENANT = "admin"
+    #Reading in command line arguements
+    #Creating parser object that will be used for command line arguments
+    parser = argparse.ArgumentParser()
 
-    osc = OpenStackClient(username=USERNAME, password=PASSWORD, tenant_name=TENANT, auth_url=KEYSTONE_URL)
+    #Adding keystone endpoint arguement to parser object. 
+    parser.add_argument('--auth_url', required=True, 
+    nargs='?', help='This is the url to your keystone endpoint.')
+
+    #Adding username arguement to parser object. 
+    parser.add_argument('--username', required=True, 
+    nargs='?', help='This is the username arguement. This username will need to have access to the tenant in question.')
+
+    #Adding password arguement to parser object. 
+    parser.add_argument('--password', required=True, 
+    nargs='?', help='This is the password arguement. This is the password for the associated username.')
+
+    #Adding tenant arguement to parser object. 
+    parser.add_argument('--tenant', required=True, 
+    nargs='?', help='This is the tenant arguement. The username in question will need access to this tenant')
+
+    #Creating args object that will hold each of the arguments sent into
+    #the parser object.
+    args = parser.parse_args()
+
+    #now you need to add the above arguements to the instantiation of the below osc object.
+
+    osc = OpenStackClient(username=args.username, password=args.password, tenant_name=args.tenant, auth_url=args.auth_url)
+
+    # osc = OpenStackClient(username=USERNAME, password=PASSWORD, tenant_name=TENANT, auth_url=KEYSTONE_URL)
 
     #Creating nova object that will be used to interact with nova apis
     nova = osc.connect_nova()
@@ -27,7 +51,7 @@ if __name__ == "__main__":
     tenantDictionary = {}    
 
     #The below dictionary is very important. When everything is said and done it will be in the following format
-    #hypervisor is self explanatory but the dictionary inside econtains the instance associated with the tenant
+    #hypervisor is self explanatory but the dictionary inside contains the instance associated with the tenant
     #and the corresponding qbr port. This port is important because it will later be used to craft the appropriate
     #ovs command on the bridge.
     # hypinstqbr = {
@@ -109,7 +133,6 @@ if __name__ == "__main__":
             if tenantInstances:
                 #Filling hypervisor to instance dictionary
                 hypinstqbr[h.hypervisor_hostname] = tenantInstances
-
         except:
             pass
 
