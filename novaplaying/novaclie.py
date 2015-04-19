@@ -5,8 +5,39 @@ from ansibleWrap import ansibleWrap
 from OpenStackClient import OpenStackClient
 import argparse
 
+def userInput(hypinstqbr):
+    '''This function is used to determine what instances the user wants to span traffic for: (format: instance1,instance2,instance3)'''
+    for values in hypinstqbr.values():
+        for key in values.keys():
+            print key
+
+    var = raw_input("What instances would you like to span traffic for (format: instance1,instance2,instance3): ")
+
+    #Grabbing command line arguements
+    arguements = var.split(',')
+
+    for k, v in hypinstqbr.items():
+        print k, '>', v
+
+    #Determining the hypervisor and qvo port associated with the instance(s) that were selected.
+    for k, v in hypinstqbr.items():
+        for instance in v.keys():
+            if instance in arguements:
+                # print v[instance].values()
+                print 'Hypervisor:' + k + ' Instance:' + instance + ' Port:' + v[instance].values()[0]
+
+    #Creating ovs commands to SPAN traffic only for now.
+    # ovs-vsctl -- set Bridge br-int mirrors=@m  -- --id=@p2p3 \
+    # get Port p2p3  -- --id=@qvoc5bbb3d7-43 get Port qvoc5bbb3d7-43  \
+    # -- --id=@m create Mirror name=mymirror select-dst-port=@qvoc5bbb3d7-43 \
+    # select-src-port=@qvoc5bbb3d7-43 output-port=@p2p3
+
+    #Clearing bridge
+    #ovs-vsctl clear Bridge br-int mirrors
+ 
 
 if __name__ == "__main__":
+
 
     #Reading in command line arguements
     #Creating parser object that will be used for command line arguments
@@ -56,13 +87,13 @@ if __name__ == "__main__":
     #ovs command on the bridge.
     # hypinstqbr = {
     # "hypervisor1":{
-    #     "instanceId1": {IP_ADDRESS:'qbr7b8da7ed-66'},
-    #     "instanceId2": {IP_ADDRESS:'qbr7b2da2ef-16'},
-    #     "instanceId3": {IP_ADDRESS: 'qbr4b2d32ef-26'},
+    #     "Instance Name": {IP_ADDRESS:'qbr7b8da7ed-66'},
+    #     "Instance Name": {IP_ADDRESS:'qbr7b2da2ef-16'},
+    #     "Instance Name": {IP_ADDRESS: 'qbr4b2d32ef-26'},
     #     },
     # "hypervisor2":{
-    #     "instanceId4": {IP_ADDRESS: 'qbr4b2d32ef-26'},
-    #     "instanceId5": {IP_ADDRESS: 'qbr4a2d12ef-76'}
+    #     "Instance Name": {IP_ADDRESS: 'qbr4b2d32ef-26'},
+    #     "Instance Name": {IP_ADDRESS: 'qbr4a2d12ef-76'}
     # }
     hypinstqbr = {}
 
@@ -70,6 +101,8 @@ if __name__ == "__main__":
     for val in keystone.tenants.list():
         #Filling dicionary
         tenantDictionary[val.id] = val.name
+
+        
 
         #Determining the uuid of the Garrett tenant. We will need this later, this tenat will also be
         #used as input from the user later
@@ -96,10 +129,14 @@ if __name__ == "__main__":
 
             #For loop to look at each instance on the hypervisor and determine if it is in the tenant in question
             for instance in instances:
+
+
                 #If a tenant_id associated with an instance matches the original tenant_id the user submitted, a dictionary will be filled.
                 if nova.servers.get(instance['uuid']).tenant_id == tenant_id:
+
                     #Filling tenantInstance dictionary with empty instnaceNetworkandPort dictionary.
-                    tenantInstances[nova.servers.get(instance['uuid']).id] = instanceNetworkandPort
+                    # tenantInstances[nova.servers.get(instance['uuid']).id] = instanceNetworkandPort
+                    tenantInstances[nova.servers.get(instance['uuid']).name] = instanceNetworkandPort
 
                     #Left off here. You will need to take advantage of below call to grab the first private ip address
                     #associated with the instance and add it to the dictionary to be used later
@@ -107,7 +144,7 @@ if __name__ == "__main__":
 
                     #What data structures looks like before going into the below for loop nested dictionary
                     #is declared as instanceNetworkandPort it will be of the format {IP_ADDR:PORT_ID}
-                    # tenantInstances =  {"instanceId1": {}, "instanceId2": {}, "instanceId3": {}}
+                    # tenantInstances =  {"Instance Name": {}, "Instance Name": {}, "Instance Name": {}}
 
                     #grabbing port
                     for val in neutron.list_ports()['ports']:
@@ -119,8 +156,8 @@ if __name__ == "__main__":
 
                     #Adding instanceNetworkandPort dictionary as value to the tenantInstances key of instanceID
                     #after this point the data structure will look like the following
-                    #tenantInstances =  {"instanceId1": {'192.168.1.23': '7b8da7ed-66f2-4369-8406-cd3fe2ec737e'}}
-                    tenantInstances[nova.servers.get(instance['uuid']).id] = instanceNetworkandPort
+                    #tenantInstances =  {"Instance Name": {'192.168.1.23': '7b8da7ed-66f2-4369-8406-cd3fe2ec737e'}}
+                    tenantInstances[nova.servers.get(instance['uuid']).name] = instanceNetworkandPort
 
                     #Clearing the dictionary because we don't want the old values appended to the new instance at
                     #the start of this for loop.
@@ -140,16 +177,15 @@ if __name__ == "__main__":
     #the dictionary will look like the following:
     # hypinstqbr = {
     # "hypervisor1":{
-    #     "instanceId1": {IP_ADDRESS:'qbr7b8da7ed-66'},
-    #     "instanceId2": {IP_ADDRESS:'qbr7b2da2ef-16'},
-    #     "instanceId3": {IP_ADDRESS: 'qbr4b2d32ef-26'},
+    #     "Instance Name": {IP_ADDRESS:'qbr7b8da7ed-66'},
+    #     "Instance Name": {IP_ADDRESS:'qbr7b2da2ef-16'},
+    #     "Instance Name": {IP_ADDRESS: 'qbr4b2d32ef-26'},
     #     },
     # "hypervisor2":{
-    #     "instanceId4": {IP_ADDRESS: 'qbr4b2d32ef-26'},
-    #     "instanceId5": {IP_ADDRESS: 'qbr4a2d12ef-76'}
+    #     "Instance Name": {IP_ADDRESS: 'qbr4b2d32ef-26'},
+    #     "Instance Name": {IP_ADDRESS: 'qbr4a2d12ef-76'}
     # }
 
-    print hypinstqbr
-
-
-
+    #Ask user what instances they would like to span traffic for
+    userInput(hypinstqbr)
+    # print '\n' + str(hypinstqbr)
