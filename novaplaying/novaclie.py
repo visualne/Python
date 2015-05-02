@@ -34,6 +34,9 @@ def userInput(hypinstqbr):
 
     #Clearing bridge
     #ovs-vsctl clear Bridge br-int mirrors
+
+    #Creating GRE tunnels
+    #ovs-vsctl add-port br-int gre0 -- set interface gre0 type=gre options:remote_ip=192.168.2.2
  
 
 if __name__ == "__main__":
