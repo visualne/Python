@@ -26,18 +26,15 @@ def userInput(hypinstqbr):
                 # print v[instance].values()
                 print 'Hypervisor:' + k + ' Instance:' + instance + ' Port:' + v[instance].values()[0]
 
-    #Creating ovs commands to SPAN traffic only for now.
-    # ovs-vsctl -- set Bridge br-int mirrors=@m  -- --id=@p2p3 \
-    # get Port p2p3  -- --id=@qvoc5bbb3d7-43 get Port qvoc5bbb3d7-43  \
-    # -- --id=@m create Mirror name=mymirror select-dst-port=@qvoc5bbb3d7-43 \
-    # select-src-port=@qvoc5bbb3d7-43 output-port=@p2p3
-
     #Clearing bridge
     #ovs-vsctl clear Bridge br-int mirrors
 
     #Creating GRE tunnels
     #ovs-vsctl add-port br-int gre0 -- set interface gre0 type=gre options:remote_ip=192.168.2.2
  
+    #Creating ovs commands to SPAN traffic to gre port
+    #ovs-vsctl -- set Bridge br-int mirrors=@m  -- --id=@gre0 get Port gre0  -- --id=@qvo5650c159-ed get Port qvo5650c159-ed  -- --id=@m create Mirror name=mymirror \
+    #select-dst-port=@qvo5650c159-ed select-src-port=@qvo5650c159-ed output-port=@gre0
 
 if __name__ == "__main__":
 
