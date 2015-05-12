@@ -128,6 +128,10 @@ class TuneFinder:
                 print "Possible match found: Title: " + songTitle + " Link: " + 'https://www.youtube.com/watch?v=' + videoID
 
 if __name__ == '__main__':
-    a = TuneFinder("AIzaSyAPLEpZgnfkvyxX2QuFT60LFDKg84WWSJQ","SamplePlaylist.txt")
+
+    #apiKey - You will need to add this
+    apiKey = ''
+
+    a = TuneFinder(apiKey,"SamplePlaylist.txt")
 
     a.searchPlaylist()
