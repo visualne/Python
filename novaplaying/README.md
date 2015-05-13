@@ -8,7 +8,5 @@ question. ex)mirroing, qos, rspan, etc.
 
 Usage example: python novaclie.py --auth_url http://192.168.1.220:5000/v2.0/ --username admin --password whatever --tenant admin
 
-*You will have to install the isodate python module in order to get this to run
-
 #Things to do
 
