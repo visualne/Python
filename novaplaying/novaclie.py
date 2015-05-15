@@ -36,6 +36,9 @@ def userInput(hypinstqbr):
     #ovs-vsctl -- set Bridge br-int mirrors=@m  -- --id=@gre0 get Port gre0  -- --id=@qvo5650c159-ed get Port qvo5650c159-ed  -- --id=@m create Mirror name=mymirror \
     #select-dst-port=@qvo5650c159-ed select-src-port=@qvo5650c159-ed output-port=@gre0
 
+    #Flow rule
+    #ovs-ofctl add-flow br-tun tun_id=0x30,idle_timeout=0,icmp,action=mod_vlan_vid:100,output:2
+
 if __name__ == "__main__":
 
 
