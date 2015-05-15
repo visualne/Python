@@ -30,7 +30,7 @@ def userInput(hypinstqbr):
     #ovs-vsctl clear Bridge br-int mirrors
 
     #Creating GRE tunnels
-    #ovs-vsctl add-port br-int gre0 -- set interface gre0 type=gre options:remote_ip=192.168.2.2
+    #ovs-vsctl add-port br-int gre0 -- set interface gre0 type=gre options:remote_ip=192.168.2.2 options:key=30    
  
     #Creating ovs commands to SPAN traffic to gre port
     #ovs-vsctl -- set Bridge br-int mirrors=@m  -- --id=@gre0 get Port gre0  -- --id=@qvo5650c159-ed get Port qvo5650c159-ed  -- --id=@m create Mirror name=mymirror \
