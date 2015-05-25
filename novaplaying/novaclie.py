@@ -42,6 +42,8 @@ def userInput(hypinstqbr):
     #shows openflow port numbers
     #ovs-ofctl show br-tun
 
+    #delete all flows from a specific table
+
     #adding flow rules to br-tun
     #You will need to grab things like tunnel id and openflow port numbers once they
     #are created on the bridge.
