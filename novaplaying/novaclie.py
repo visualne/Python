@@ -36,8 +36,21 @@ def userInput(hypinstqbr):
     #ovs-vsctl -- set Bridge br-int mirrors=@m  -- --id=@gre0 get Port gre0  -- --id=@qvo5650c159-ed get Port qvo5650c159-ed  -- --id=@m create Mirror name=mymirror \
     #select-dst-port=@qvo5650c159-ed select-src-port=@qvo5650c159-ed output-port=@gre0
 
-    #Flow rule
-    #ovs-ofctl add-flow br-tun tun_id=0x30,idle_timeout=0,icmp,action=mod_vlan_vid:100,output:2
+    #list mirrors
+    #ovs-vsctl list Bridge br0
+
+    #shows openflow port numbers
+    #ovs-ofctl show br-tun
+
+    #adding flow rules to br-tun
+    #You will need to grab things like tunnel id and openflow port numbers once they
+    #are created on the bridge.
+    #ovs-ofctl add-flow br-tun "table=0,priority=1,in_port=4,actions=resubmit(,3)"
+    #ovs-ofctl add-flow br-tun "table=3,priority=1,tun_id=30,actions=mod_vlan_vid:1,output:1"
+    #For whatever reason the packet isn't being forwarded over the patch port at this point,
+    #however the GRE headers are gone after these two flow rules are done.
+
+
 
 if __name__ == "__main__":
 
