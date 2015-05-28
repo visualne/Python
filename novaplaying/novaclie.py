@@ -7,24 +7,26 @@ import argparse
 
 def userInput(hypinstqbr):
     '''This function is used to determine what instances the user wants to span traffic for: (format: instance1,instance2,instance3)'''
+
     for values in hypinstqbr.values():
         for key in values.keys():
             print key
 
+    #Grabbing user input, determing what instances they would like to span traffic for.
     var = raw_input("What instances would you like to span traffic for (format: instance1,instance2,instance3): ")
 
     #Grabbing command line arguements
     arguements = var.split(',')
 
-    for k, v in hypinstqbr.items():
-        print k, '>', v
+    # for k, v in hypinstqbr.items():
+    #     print k, '>', v
 
     #Determining the hypervisor and qvo port associated with the instance(s) that were selected.
-    for k, v in hypinstqbr.items():
-        for instance in v.keys():
-            if instance in arguements:
-                # print v[instance].values()
-                print 'Hypervisor:' + k + ' Instance:' + instance + ' Port:' + v[instance].values()[0]
+    # for k, v in hypinstqbr.items():
+    #     for instance in v.keys():
+    #         if instance in arguements:
+    #             # print v[instance].values()
+    #             print 'Hypervisor:' + k + ' Instance:' + instance + ' Port:' + v[instance].values()[0]
 
     #Clearing bridge
     #ovs-vsctl clear Bridge br-int mirrors
@@ -82,10 +84,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     #now you need to add the above arguements to the instantiation of the below osc object.
-
     osc = OpenStackClient(username=args.username, password=args.password, tenant_name=args.tenant, auth_url=args.auth_url)
-
-    # osc = OpenStackClient(username=USERNAME, password=PASSWORD, tenant_name=TENANT, auth_url=KEYSTONE_URL)
 
     #Creating nova object that will be used to interact with nova apis
     nova = osc.connect_nova()
@@ -120,11 +119,9 @@ if __name__ == "__main__":
         #Filling dicionary
         tenantDictionary[val.id] = val.name
 
-        
-
         #Determining the uuid of the Garrett tenant. We will need this later, this tenat will also be
         #used as input from the user later
-        if tenantDictionary[val.id] == 'Garrett':
+        if tenantDictionary[val.id] == args.tenant:
             tenant_id = val.id
 
     
