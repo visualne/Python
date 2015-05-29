@@ -142,7 +142,7 @@ if __name__ == "__main__":
                 #If the tenant_id associated with an instance matches the original tenant_id the user submitted, a dictionary will be filled.
                 if nova.servers.get(instance['uuid']).tenant_id == tenant_id:
 
-                    #At this point we can be begin to fill the instanceInfo object.
+                    #At this point we can be begin to fill the vm_attributes object.
                     vm_attributes.instance_id = nova.servers.get(instance['uuid']).id
                     vm_attributes.hypervisor = h.hypervisor_hostname
                     vm_attributes.name = nova.servers.get(instance['uuid']).name
