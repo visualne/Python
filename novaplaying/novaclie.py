@@ -56,6 +56,10 @@ def userInput(instanceInfoList):
     #For whatever reason the packet isn't being forwarded over the patch port at this point,
     #however the GRE headers are gone after these two flow rules are done.
 
+    #Mirroring traffic from a specific vlan. I am also seeing problems seeing inbound traffic from
+    #patch port
+    #ovs-vsctl -- --id=@gre0 get Port gre0 -- --id=@m create mirror name=m0 select-all=true select-vlan=1 output-port=@gre0 -- set bridge br-int mirrors=@m
+
 if __name__ == "__main__":
 
 
