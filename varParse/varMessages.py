@@ -29,13 +29,6 @@ class messageCounter:
             date = match.group(1)
             program_name = match.group(2)
 
-            #  Check to see if the program was already seen, if it was a counter
-            #  is incremented.
-            # if program_name in programDict.keys():
-            #     programDict[program_name] = programDict[program_name] + 1
-            # else:
-            #     programDict[program_name] = 1
-
 
             #  Checking to see if date is a key in the timeProgramDict.
             if date in self.timeProgramDict.keys():
