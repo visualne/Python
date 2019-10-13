@@ -46,11 +46,9 @@ class messageCounter:
                     self.timeProgramDict[date][program_name] = \
                         self.programDict[program_name]
                 else:
-                    #  The below can probably be changed to
-                    #  timeProgramDict[date] = programDict
+                    #  Changing timeProgramDict appropriately.
                     self.timeProgramDict[date] = self.programDict
-                    # self.timeProgramDict[date].update(
-                    #     {program_name: programDict[program_name]})
+
 
                 # Checking to see if the program exists in all of the
                 #  programs that were found thus far.
