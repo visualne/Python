@@ -1,0 +1,52 @@
+import re
+
+# Start : html
+# Start : head
+# Start : title
+# End   : title
+# End   : head
+# Start : body
+# -> data-modal-target > None
+# -> class > 1
+# Start : h1
+# End   : h1
+# Empty : br
+# End   : body
+# End   : html
+
+'''This function prings all the tags in the list.'''
+def printTags(tagsList):
+    #  Loop to look through each tag in the list.
+    for tag in tagsList:
+        #  Code here to determine what type of tag it is.
+        startMatch = re.match('<(\w+)>',tag)
+        endMatch = re.match('</(\w+)>',tag)
+        emptyMatch = re.match('<(\w+) />',tag)
+        tagWithAttributes = re.match('<(.+?)>',tag)
+
+        if startMatch:
+            print 'Start : ' + startMatch.group(1)
+        elif endMatch:
+            print 'End : ' + endMatch.group(1)
+        elif emptyMatch:
+            print 'Empty : ' + emptyMatch.group(1)
+        elif tagWithAttributes:
+            tagWithAttributesList = tagWithAttributes.group(1).split(' ')
+            print 'Start : ' + tagWithAttributesList[0]
+            #  For loop to bring out the attributes of the tag.
+            for attribute in tagWithAttributesList[1:]:
+                if '=' in attribute:
+                    print '-> ' + attribute.replace('=', ' > ')
+                else:
+                    print '-> ' + attribute + ' > None'
+
+
+#  Opening input file
+f = open('input','r')
+
+#  Reading each line of input in the input file
+for val in f.readlines():
+    tagsList = re.findall(r'<.*?>',val)
+
+    #  Calling printTags function
+    printTags(tagsList)
