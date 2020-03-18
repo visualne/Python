@@ -5,6 +5,8 @@
 # [1,2,4,3,5]
 # [1,2,3,4,5]]
 
+#  something random on master branch
+
 #  Create a selection sort
 #  Find the smallest element in the unsorted sublist - move it up the list
 #  appropriately
