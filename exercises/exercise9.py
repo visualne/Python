@@ -4,6 +4,8 @@
 def selectionSortUnoptimized(arr):
     # arr = [2,5,4,1,3,6]
 
+    #  Sample on feature
+
     #  Initialzing count to zero
     count = 0
 
