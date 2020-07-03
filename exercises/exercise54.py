@@ -14,21 +14,22 @@ def add_spaces_remove_zeros(value,len_of_binary_value):
     return value
 
 
-len_of_binary_value = len(bin(2)[2:])
+len_of_binary_value = len(bin(17)[2:])
 
 
-number_of_spaces = '%'+str(len_of_binary_value)+'s'\
+number_of_spaces = '%'+str(len_of_binary_value+1)+'s'
 
 #  For loop to convert the decimal number associated with val.
-for val in range(1,2+1):
+for val in range(1,17+1):
 
     decimal_value = str(val)
     octal_value = str(oct(val))
-    hex_value = str(hex(val)[2:])
+    hex_value = str(hex(val).upper()[2:])
     bin_value = str(bin(val)[2:])
 
     decimal = add_spaces_remove_zeros(decimal_value,len_of_binary_value)
-    decimal = number_of_spaces % decimal
+    num_spaces_one_less = '%'+str(len_of_binary_value)+'s'
+    decimal = num_spaces_one_less % decimal
 
     octal = add_spaces_remove_zeros(octal_value, len_of_binary_value)
     octal = number_of_spaces % octal
@@ -36,8 +37,8 @@ for val in range(1,2+1):
     hexadecimal = add_spaces_remove_zeros(hex_value, len_of_binary_value)
     hexadecimal = number_of_spaces % hexadecimal
 
-    binary = number_of_spaces % bin_value
-    binary = add_spaces_remove_zeros(binary, len_of_binary_value)
+    binary = add_spaces_remove_zeros(bin_value, len_of_binary_value)
+    binary = number_of_spaces % binary
 
 
     # if len(decimal) or len(octal) or
