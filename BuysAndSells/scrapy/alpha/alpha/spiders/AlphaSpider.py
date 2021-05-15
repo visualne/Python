@@ -15,13 +15,53 @@ class AlphaSpider(scrapy.Spider):
         #  Timestamp one regex. ex) Mar. 21, 2019, 1:26 AM
         timestamp_one = re.compile('\w{3}\. \d{1,2}, \d{4}, \d{1,2}:\d{1,2} (AM|PM)')
 
-        if timestamp_one.match(timestamp_one):
-            datetime_object = datetime.datetime.strptime(timestamp, "%b. %d, %Y, %I:%M %p")
+        #  Timestamp two regex. ex) Thu, Apr. 22, 4:56 PM
+        timestamp_two = re.compile('\w{3}, \w{3}\. \d{1,2}\, \d{1,2}:\d{2} (AM|PM)')
 
-            #  convert timestamp here.
+        #  Timestamp three ex) Yesterday or Today
+        timestamp_three = re.compile('Yesterday|Today')
+
+        if timestamp_one.match(timestamp):
+            datetime_object = datetime.datetime.strptime(timestamp,
+                                                         "%b. %d, %Y, %I:%M %p")
+            return datetime_object
+        elif timestamp_two.match(timestamp):
+            datetime_object = datetime.datetime.strptime(timestamp,
+                                                         "%a, %b. %d, %I:%M %p")
+            #  Changing year to the current year.
+            datetime_object = datetime_object.replace(year=
+                                                      datetime.datetime
+                                                      .now().year)
+            return datetime_object
+            # print('Found second type of timestamp')
+        else:
+            return timestamp
 
         #  Example timestamp
-        timestamp_one.match('Mar. 21, 2019, 1:26 AM').group()
+        # timestamp_one.match('Mar. 21, 2019, 1:26 AM').group()
+        # Tue, Apr. 13, 9:52 AM
+
+    def getEntry(self,type_of_data,sel):
+
+        xpathDictionary = {
+            'date': 'div[@class="media-body"]/div[@class="mc-share-info"]\
+            /span[@class="item-date"]/text()',
+            'symbol': 'div[@class="media-left"]/a/text()',
+            'title': 'div[@class="media-body"]/div[@class="title"]/a/text()',
+            'link': 'div[@class="media-body"]/div[@class="title"]/a/@href'
+        }
+
+        #  Attempting to pull data from page.
+        try:
+            return sel.xpath(xpathDictionary[type_of_data]).extract()[0]
+        #  If this except statement is hit it means no data was found.
+        except:
+            return 'none'
+
+
+    # def databaseInsert(self,data_entries):
+    #
+    #     pass
 
 
     def parse(self, response):
@@ -35,24 +75,34 @@ class AlphaSpider(scrapy.Spider):
 
         # my_date = datetime.datetime.strptime(my_string, "%a, %b. %d, %I:%M %p")
 
-
         #     #  For loop to grab reported information for each sell or buy.
         for sel in response.xpath('//ul/li[@class="mc"]'):
 
             #  This will grab the date from the reported sell or buy.
-            date = sel.xpath('div[@class="media-body"]/div[@class="mc-share-info"]/span[@class="item-date"]/text()').get()
+            date = self.getEntry('date',sel)
 
             #  Getting stock symbol
-            symbol = sel.xpath('div[@class="media-left"]/a/text()').extract()[0]
+            symbol = self.getEntry('symbol', sel)
 
             #  This will grab the title of the reported sell or buy.
-            title = sel.xpath('div[@class="media-body"]/div[@class="title"]/a/text()').extract()[0]
+            title = self.getEntry('title', sel)
 
             #  This will grab the link to the reported sell or buy.
-            link = sel.xpath('div[@class="media-body"]/div[@class="title"]/a/@href').extract()[0]
+            link = self.getEntry('link', sel)
 
-            print([date,symbol,title,link])
-            # print((date,title,link))
+            # print([date,symbol,title,link])
+
+            data_entries_dictionary = {
+                'date': date,
+                'symbol': symbol,
+                'title': title,
+                'link': link
+            }
+
+            print(self.convertTimestamp(date))
+
+            #  Inserting entries in database.
+            # self.databaseInsert(data_entries_dictionary)
 
         # for sel in response.xpath('//ul/li[@class="mc"]/div[@class="media-body"]/div[@class="title"]'):
 
