@@ -6,7 +6,7 @@ class AlphaSpider(scrapy.Spider):
     name = 'alphaScrape'
 
     start_urls = [
-        'file:///Users/none/Desktop/Sort/MISC/Python/exercises/github/Python/BuysAndSells/scrapy/alpha/alpha/page1.html'
+        'file:///Users/none/Desktop/Sort/MISC/Python/exercises/github/Python/BuysAndSells/scrapy/alpha/alpha/page2.html'
         # 'https://seekingalpha.com/market-news/m-a'
     ]
 
@@ -15,25 +15,53 @@ class AlphaSpider(scrapy.Spider):
         #  Timestamp one regex. ex) Mar. 21, 2019, 1:26 AM
         timestamp_one = re.compile('\w{3}\. \d{1,2}, \d{4}, \d{1,2}:\d{1,2} (AM|PM)')
 
-        #  Timestamp two regex. ex) Thu, Apr. 22, 4:56 PM
-        timestamp_two = re.compile('\w{3}, \w{3}\. \d{1,2}\, \d{1,2}:\d{2} (AM|PM)')
+        #  Tue, May 11, 4:36 PM
 
-        #  Timestamp three ex) Yesterday or Today
-        timestamp_three = re.compile('Yesterday|Today')
+        #  Timestamp two regex. ex) Thu, Apr 22, 4:56 PM
+        timestamp_two = re.compile('\w{3}, \w{3} \d{1,2}\, \d{1,2}:\d{2} (AM|PM)')
+
+        #  Timestamp three ex) Yesterday
+        timestamp_three = re.compile('Yesterday, (\d{1,2}:\d{2} (AM|PM))')
+
 
         if timestamp_one.match(timestamp):
             datetime_object = datetime.datetime.strptime(timestamp,
                                                          "%b. %d, %Y, %I:%M %p")
             return datetime_object
+
         elif timestamp_two.match(timestamp):
             datetime_object = datetime.datetime.strptime(timestamp,
-                                                         "%a, %b. %d, %I:%M %p")
+                                                         "%a, %b %d, %I:%M %p")
             #  Changing year to the current year.
             datetime_object = datetime_object.replace(year=
                                                       datetime.datetime
                                                       .now().year)
             return datetime_object
-            # print('Found second type of timestamp')
+
+        elif timestamp_three.match(timestamp):
+
+            #  Settings days timedelta of 1 day
+            days = datetime.timedelta(1)
+
+            #  Getting todays date in format 2021-05-14
+            todays_date = datetime.datetime.now().date()
+
+            #  Subtracting one day from current date
+            yesterdays_date = str(todays_date - days)
+            #  Getting time from the timestamp found.
+            yesterdays_time = timestamp_three.match(timestamp).group(1)
+
+            #  Getting final timestamp string.
+            yesterdays_timestamp = yesterdays_date + ' ' + yesterdays_time
+
+            # yesterdays_timestamp = '2021-05-14 12:53 AM'
+
+            #  Getting final datetime object
+            yesterdays_datetime_object = datetime.datetime.strptime(
+                yesterdays_timestamp,"%Y-%m-%d %I:%M %p")
+
+            return yesterdays_datetime_object
+
         else:
             return timestamp
 
@@ -68,6 +96,7 @@ class AlphaSpider(scrapy.Spider):
 
         base_url = 'https://seekingalpha.com'
 
+
         #  Formats of date
         #  Mar. 21, 2019, 1:26 PM regex = \w{3}\. \d{1,2}, \d{4}, \d{1,2}:\d{1,2} \W{2}')
         #  Thu, Apr. 22, 4:56 PM
@@ -99,7 +128,7 @@ class AlphaSpider(scrapy.Spider):
                 'link': link
             }
 
-            print(self.convertTimestamp(date))
+            print(type(self.convertTimestamp(date)))
 
             #  Inserting entries in database.
             # self.databaseInsert(data_entries_dictionary)
