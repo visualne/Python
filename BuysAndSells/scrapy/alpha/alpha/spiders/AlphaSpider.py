@@ -1,4 +1,6 @@
 import scrapy,re,datetime
+from ..db_interaction import db_interaction
+from ..config import config
 
 #  Left off creating regular expressions for each type of timestamp
 
@@ -15,8 +17,6 @@ class AlphaSpider(scrapy.Spider):
         #  Timestamp one regex. ex) Mar. 21, 2019, 1:26 AM
         timestamp_one = re.compile('\w{3}\. \d{1,2}, \d{4}, \d{1,2}:\d{1,2} (AM|PM)')
 
-        #  Tue, May 11, 4:36 PM
-
         #  Timestamp two regex. ex) Thu, Apr 22, 4:56 PM
         timestamp_two = re.compile('\w{3}, \w{3} \d{1,2}\, \d{1,2}:\d{2} (AM|PM)')
 
@@ -27,7 +27,9 @@ class AlphaSpider(scrapy.Spider):
         if timestamp_one.match(timestamp):
             datetime_object = datetime.datetime.strptime(timestamp,
                                                          "%b. %d, %Y, %I:%M %p")
-            return datetime_object
+
+
+            return datetime_object.strftime("%Y-%m-%d %H:%M:%S")
 
         elif timestamp_two.match(timestamp):
             datetime_object = datetime.datetime.strptime(timestamp,
@@ -36,7 +38,8 @@ class AlphaSpider(scrapy.Spider):
             datetime_object = datetime_object.replace(year=
                                                       datetime.datetime
                                                       .now().year)
-            return datetime_object
+
+            return datetime_object.strftime("%Y-%m-%d %H:%M:%S")
 
         elif timestamp_three.match(timestamp):
 
@@ -60,7 +63,7 @@ class AlphaSpider(scrapy.Spider):
             yesterdays_datetime_object = datetime.datetime.strptime(
                 yesterdays_timestamp,"%Y-%m-%d %I:%M %p")
 
-            return yesterdays_datetime_object
+            return yesterdays_datetime_object.strftime("%Y-%m-%d %H:%M:%S")
 
         else:
             return timestamp
@@ -87,15 +90,22 @@ class AlphaSpider(scrapy.Spider):
             return 'none'
 
 
-    # def databaseInsert(self,data_entries):
-    #
-    #     pass
+    def databaseInsert(self,data_entries):
 
+        # print(data_entries)
+
+        db_interaction_object = db_interaction('127.0.0.1',
+                                               config.username,
+                                               config.password)
+        #  Connecting to database
+        db_interaction_object.connect()
+
+        #  Inserting data into table
+        db_interaction_object.insert(table='transactions',data=data_entries)
 
     def parse(self, response):
 
         base_url = 'https://seekingalpha.com'
-
 
         #  Formats of date
         #  Mar. 21, 2019, 1:26 PM regex = \w{3}\. \d{1,2}, \d{4}, \d{1,2}:\d{1,2} \W{2}')
@@ -119,19 +129,25 @@ class AlphaSpider(scrapy.Spider):
             #  This will grab the link to the reported sell or buy.
             link = self.getEntry('link', sel)
 
-            # print([date,symbol,title,link])
+            #  This will be the page url
+            page_url = response.request.url
+
+            # print([date,symbol,title,link,page_url])
 
             data_entries_dictionary = {
-                'date': date,
+                'date': self.convertTimestamp(date),
                 'symbol': symbol,
                 'title': title,
-                'link': link
+                'link': link,
+                'page_url': response.request.url
             }
 
-            print(type(self.convertTimestamp(date)))
+            # print(data_entries_dictionary)
+
+            # print(self.convertTimestamp(date))
 
             #  Inserting entries in database.
-            # self.databaseInsert(data_entries_dictionary)
+            self.databaseInsert(data_entries_dictionary)
 
         # for sel in response.xpath('//ul/li[@class="mc"]/div[@class="media-body"]/div[@class="title"]'):
 
