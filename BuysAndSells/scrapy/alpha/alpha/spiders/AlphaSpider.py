@@ -1,4 +1,4 @@
-import scrapy,re,datetime
+import scrapy,re,datetime,random,time
 from ..db_interaction import db_interaction
 from ..config import config
 
@@ -7,9 +7,13 @@ from ..config import config
 class AlphaSpider(scrapy.Spider):
     name = 'alphaScrape'
 
+    # https://seekingalpha.com/market-news/m-a?page=1
+    # start_urls = ["https://seekingalpha.com/market-news/m-a?page=%s" % page for page in
+    #               list(range(1,100))]
+
     start_urls = [
-        'file:///Users/none/Desktop/Sort/MISC/Python/exercises/github/Python/BuysAndSells/scrapy/alpha/alpha/page2.html'
-        # 'https://seekingalpha.com/market-news/m-a'
+        # 'file:///Users/none/Desktop/Sort/MISC/Python/exercises/github/Python/BuysAndSells/scrapy/alpha/alpha/page2.html'
+        'https://seekingalpha.com/market-news/m-a'
     ]
 
     def convertTimestamp(self,timestamp):
@@ -107,6 +111,15 @@ class AlphaSpider(scrapy.Spider):
 
         base_url = 'https://seekingalpha.com'
 
+        page_number = response.url.split("/")[-1][-1]
+        filename = 'page' + page_number + '.html'
+        # filename = response.url.split("/")[-1] + '.html'
+        with open(filename, 'wb') as f:
+            f.write(response.body)
+
+        #  Closing file handler
+        f.close()
+
         #  Formats of date
         #  Mar. 21, 2019, 1:26 PM regex = \w{3}\. \d{1,2}, \d{4}, \d{1,2}:\d{1,2} \W{2}')
         #  Thu, Apr. 22, 4:56 PM
@@ -115,49 +128,46 @@ class AlphaSpider(scrapy.Spider):
         # my_date = datetime.datetime.strptime(my_string, "%a, %b. %d, %I:%M %p")
 
         #     #  For loop to grab reported information for each sell or buy.
-        for sel in response.xpath('//ul/li[@class="mc"]'):
-
-            #  This will grab the date from the reported sell or buy.
-            date = self.getEntry('date',sel)
-
-            #  Getting stock symbol
-            symbol = self.getEntry('symbol', sel)
-
-            #  This will grab the title of the reported sell or buy.
-            title = self.getEntry('title', sel)
-
-            #  This will grab the link to the reported sell or buy.
-            link = self.getEntry('link', sel)
-
-            #  This will be the page url
-            page_url = response.request.url
-
-            # print([date,symbol,title,link,page_url])
-
-            data_entries_dictionary = {
-                'date': self.convertTimestamp(date),
-                'symbol': symbol,
-                'title': title,
-                'link': link,
-                'page_url': response.request.url
-            }
-
-            # print(data_entries_dictionary)
-
-            # print(self.convertTimestamp(date))
-
-            #  Inserting entries in database.
-            self.databaseInsert(data_entries_dictionary)
+        # for sel in response.xpath('//ul/li[@class="mc"]'):
+        #
+        #     #  This will grab the date from the reported sell or buy.
+        #     date = self.getEntry('date',sel)
+        #
+        #     #  Getting stock symbol
+        #     symbol = self.getEntry('symbol', sel)
+        #
+        #     #  This will grab the title of the reported sell or buy.
+        #     title = self.getEntry('title', sel)
+        #
+        #     #  This will grab the link to the reported sell or buy.
+        #     link = self.getEntry('link', sel)
+        #
+        #     #  This will be the page url
+        #     page_url = response.request.url
+        #
+        #     # print([date,symbol,title,link,page_url])
+        #
+        #     data_entries_dictionary = {
+        #         'date': self.convertTimestamp(date),
+        #         'symbol': symbol,
+        #         'title': title,
+        #         'link': link,
+        #         'page_url': response.request.url
+        #     }
+        #
+        #
+        #     #  Inserting entries in database.
+        #     self.databaseInsert(data_entries_dictionary)
 
         # for sel in response.xpath('//ul/li[@class="mc"]/div[@class="media-body"]/div[@class="title"]'):
 
         #  Getting next link
-        # next_link = base_url + \
-        #             response.xpath('//ul[@class="list-inline"]/li[@class="next"]/a/@href').extract()[0]
+        next_link = base_url + \
+                    response.xpath('//ul[@class="list-inline"]/li[@class="next"]/a/@href').extract()[0]
         #
         #
-        # print('On page: ' + next_link)
-        # if next_link is not None:
-        #     print('in here')
-        #     time.sleep(10)
-        #     yield response.follow(next_link,callback=self.parse)
+        print('On page: ' + next_link)
+        if next_link is not None:
+            #  Sleeping for 20 seconds
+            time.sleep(20)
+            yield response.follow(next_link,callback=self.parse)
