@@ -1,4 +1,4 @@
-import scrapy,re,datetime
+import scrapy,re,datetime,random,time
 from ..db_interaction import db_interaction
 from ..config import config
 
@@ -8,8 +8,9 @@ class AlphaSpider(scrapy.Spider):
     name = 'alphaScrape'
 
     start_urls = [
-        'file:///Users/none/Desktop/Sort/MISC/Python/exercises/github/Python/BuysAndSells/scrapy/alpha/alpha/page2.html'
-        # 'https://seekingalpha.com/market-news/m-a'
+        # 'file:///Users/none/Desktop/Sort/MISC/Python/exercises/github/Python/BuysAndSells/scrapy/alpha/alpha/page9.html'
+        'https://seekingalpha.com/market-news/m-a'
+        # 'https://seekingalpha.com/market-news/m-a?page=3'
     ]
 
     def convertTimestamp(self,timestamp):
@@ -20,14 +21,19 @@ class AlphaSpider(scrapy.Spider):
         #  Timestamp two regex. ex) Thu, Apr 22, 4:56 PM
         timestamp_two = re.compile('\w{3}, \w{3} \d{1,2}\, \d{1,2}:\d{2} (AM|PM)')
 
-        #  Timestamp three ex) Yesterday
-        timestamp_three = re.compile('Yesterday, (\d{1,2}:\d{2} (AM|PM))')
+        #  Timestamp three regex ex) Thu, Apr. 1, 4:41 AM
+        timestamp_three = re.compile('\w{3}, \w{3}\. \d{1,2}\, \d{1,2}:\d{2} (AM|PM)')
+
+        #  Timestamp four regex ex) Yesterday
+        timestamp_four = re.compile('Yesterday, (\d{1,2}:\d{2} (AM|PM))')
+
+        #  Timestamp five regex ex) Today
+        timestamp_five = re.compile('Today, (\d{1,2}:\d{2} (AM|PM))')
 
 
         if timestamp_one.match(timestamp):
             datetime_object = datetime.datetime.strptime(timestamp,
                                                          "%b. %d, %Y, %I:%M %p")
-
 
             return datetime_object.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -41,7 +47,18 @@ class AlphaSpider(scrapy.Spider):
 
             return datetime_object.strftime("%Y-%m-%d %H:%M:%S")
 
+        # Thu, Apr. 1, 4:41AM
         elif timestamp_three.match(timestamp):
+            datetime_object = datetime.datetime.strptime(timestamp,
+                                                         "%a, %b. %d, %I:%M %p")
+            #  Changing year to the current year.
+            datetime_object = datetime_object.replace(year=
+                                                      datetime.datetime
+                                                      .now().year)
+
+            return datetime_object.strftime("%Y-%m-%d %H:%M:%S")
+
+        elif timestamp_four.match(timestamp):
 
             #  Settings days timedelta of 1 day
             days = datetime.timedelta(1)
@@ -52,7 +69,7 @@ class AlphaSpider(scrapy.Spider):
             #  Subtracting one day from current date
             yesterdays_date = str(todays_date - days)
             #  Getting time from the timestamp found.
-            yesterdays_time = timestamp_three.match(timestamp).group(1)
+            yesterdays_time = timestamp_four.match(timestamp).group(1)
 
             #  Getting final timestamp string.
             yesterdays_timestamp = yesterdays_date + ' ' + yesterdays_time
@@ -64,6 +81,21 @@ class AlphaSpider(scrapy.Spider):
                 yesterdays_timestamp,"%Y-%m-%d %I:%M %p")
 
             return yesterdays_datetime_object.strftime("%Y-%m-%d %H:%M:%S")
+
+        elif timestamp_five.match(timestamp):
+
+            #  Getting today's date in format 2021-05-14
+            todays_date = str(datetime.datetime.now().date())
+
+            todays_time = timestamp_five.match(timestamp).group(1)
+
+            #  Getting final timestamp string.
+            todays_timestamp = todays_date + ' ' + todays_time
+
+            todays_datetime_object = datetime.datetime.strptime(
+                todays_timestamp,"%Y-%m-%d %I:%M %p")
+
+            return todays_datetime_object.strftime("%Y-%m-%d %H:%M:%S")
 
         else:
             return timestamp
@@ -112,8 +144,6 @@ class AlphaSpider(scrapy.Spider):
         #  Thu, Apr. 22, 4:56 PM
         #  Today
 
-        # my_date = datetime.datetime.strptime(my_string, "%a, %b. %d, %I:%M %p")
-
         #     #  For loop to grab reported information for each sell or buy.
         for sel in response.xpath('//ul/li[@class="mc"]'):
 
@@ -142,9 +172,6 @@ class AlphaSpider(scrapy.Spider):
                 'page_url': response.request.url
             }
 
-            # print(data_entries_dictionary)
-
-            # print(self.convertTimestamp(date))
 
             #  Inserting entries in database.
             self.databaseInsert(data_entries_dictionary)
@@ -152,12 +179,12 @@ class AlphaSpider(scrapy.Spider):
         # for sel in response.xpath('//ul/li[@class="mc"]/div[@class="media-body"]/div[@class="title"]'):
 
         #  Getting next link
-        # next_link = base_url + \
-        #             response.xpath('//ul[@class="list-inline"]/li[@class="next"]/a/@href').extract()[0]
-        #
-        #
-        # print('On page: ' + next_link)
-        # if next_link is not None:
-        #     print('in here')
-        #     time.sleep(10)
-        #     yield response.follow(next_link,callback=self.parse)
+        next_link = base_url + \
+                    response.xpath('//ul[@class="list-inline"]/li[@class="next"]/a/@href').extract()[0]
+        # #
+        # #
+        print('On page: ' + next_link)
+        if next_link is not None:
+            #  Sleeping for 20 seconds
+            time.sleep(20)
+            yield response.follow(next_link,callback=self.parse)
