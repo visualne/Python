@@ -7,13 +7,10 @@ from ..config import config
 class AlphaSpider(scrapy.Spider):
     name = 'alphaScrape'
 
-    # https://seekingalpha.com/market-news/m-a?page=1
-    # start_urls = ["https://seekingalpha.com/market-news/m-a?page=%s" % page for page in
-    #               list(range(1,100))]
-
     start_urls = [
-        # 'file:///Users/none/Desktop/Sort/MISC/Python/exercises/github/Python/BuysAndSells/scrapy/alpha/alpha/page2.html'
+        # 'file:///Users/none/Desktop/Sort/MISC/Python/exercises/github/Python/BuysAndSells/scrapy/alpha/alpha/page9.html'
         'https://seekingalpha.com/market-news/m-a'
+        # 'https://seekingalpha.com/market-news/m-a?page=3'
     ]
 
     def convertTimestamp(self,timestamp):
@@ -24,14 +21,19 @@ class AlphaSpider(scrapy.Spider):
         #  Timestamp two regex. ex) Thu, Apr 22, 4:56 PM
         timestamp_two = re.compile('\w{3}, \w{3} \d{1,2}\, \d{1,2}:\d{2} (AM|PM)')
 
-        #  Timestamp three ex) Yesterday
-        timestamp_three = re.compile('Yesterday, (\d{1,2}:\d{2} (AM|PM))')
+        #  Timestamp three regex ex) Thu, Apr. 1, 4:41 AM
+        timestamp_three = re.compile('\w{3}, \w{3}\. \d{1,2}\, \d{1,2}:\d{2} (AM|PM)')
+
+        #  Timestamp four regex ex) Yesterday
+        timestamp_four = re.compile('Yesterday, (\d{1,2}:\d{2} (AM|PM))')
+
+        #  Timestamp five regex ex) Today
+        timestamp_five = re.compile('Today, (\d{1,2}:\d{2} (AM|PM))')
 
 
         if timestamp_one.match(timestamp):
             datetime_object = datetime.datetime.strptime(timestamp,
                                                          "%b. %d, %Y, %I:%M %p")
-
 
             return datetime_object.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -45,7 +47,18 @@ class AlphaSpider(scrapy.Spider):
 
             return datetime_object.strftime("%Y-%m-%d %H:%M:%S")
 
+        # Thu, Apr. 1, 4:41AM
         elif timestamp_three.match(timestamp):
+            datetime_object = datetime.datetime.strptime(timestamp,
+                                                         "%a, %b. %d, %I:%M %p")
+            #  Changing year to the current year.
+            datetime_object = datetime_object.replace(year=
+                                                      datetime.datetime
+                                                      .now().year)
+
+            return datetime_object.strftime("%Y-%m-%d %H:%M:%S")
+
+        elif timestamp_four.match(timestamp):
 
             #  Settings days timedelta of 1 day
             days = datetime.timedelta(1)
@@ -56,7 +69,7 @@ class AlphaSpider(scrapy.Spider):
             #  Subtracting one day from current date
             yesterdays_date = str(todays_date - days)
             #  Getting time from the timestamp found.
-            yesterdays_time = timestamp_three.match(timestamp).group(1)
+            yesterdays_time = timestamp_four.match(timestamp).group(1)
 
             #  Getting final timestamp string.
             yesterdays_timestamp = yesterdays_date + ' ' + yesterdays_time
@@ -68,6 +81,21 @@ class AlphaSpider(scrapy.Spider):
                 yesterdays_timestamp,"%Y-%m-%d %I:%M %p")
 
             return yesterdays_datetime_object.strftime("%Y-%m-%d %H:%M:%S")
+
+        elif timestamp_five.match(timestamp):
+
+            #  Getting today's date in format 2021-05-14
+            todays_date = str(datetime.datetime.now().date())
+
+            todays_time = timestamp_five.match(timestamp).group(1)
+
+            #  Getting final timestamp string.
+            todays_timestamp = todays_date + ' ' + todays_time
+
+            todays_datetime_object = datetime.datetime.strptime(
+                todays_timestamp,"%Y-%m-%d %I:%M %p")
+
+            return todays_datetime_object.strftime("%Y-%m-%d %H:%M:%S")
 
         else:
             return timestamp
@@ -111,61 +139,50 @@ class AlphaSpider(scrapy.Spider):
 
         base_url = 'https://seekingalpha.com'
 
-        page_number = response.url.split("/")[-1][-1]
-        filename = 'page' + page_number + '.html'
-        # filename = response.url.split("/")[-1] + '.html'
-        with open(filename, 'wb') as f:
-            f.write(response.body)
-
-        #  Closing file handler
-        f.close()
-
         #  Formats of date
         #  Mar. 21, 2019, 1:26 PM regex = \w{3}\. \d{1,2}, \d{4}, \d{1,2}:\d{1,2} \W{2}')
         #  Thu, Apr. 22, 4:56 PM
         #  Today
 
-        # my_date = datetime.datetime.strptime(my_string, "%a, %b. %d, %I:%M %p")
-
         #     #  For loop to grab reported information for each sell or buy.
-        # for sel in response.xpath('//ul/li[@class="mc"]'):
-        #
-        #     #  This will grab the date from the reported sell or buy.
-        #     date = self.getEntry('date',sel)
-        #
-        #     #  Getting stock symbol
-        #     symbol = self.getEntry('symbol', sel)
-        #
-        #     #  This will grab the title of the reported sell or buy.
-        #     title = self.getEntry('title', sel)
-        #
-        #     #  This will grab the link to the reported sell or buy.
-        #     link = self.getEntry('link', sel)
-        #
-        #     #  This will be the page url
-        #     page_url = response.request.url
-        #
-        #     # print([date,symbol,title,link,page_url])
-        #
-        #     data_entries_dictionary = {
-        #         'date': self.convertTimestamp(date),
-        #         'symbol': symbol,
-        #         'title': title,
-        #         'link': link,
-        #         'page_url': response.request.url
-        #     }
-        #
-        #
-        #     #  Inserting entries in database.
-        #     self.databaseInsert(data_entries_dictionary)
+        for sel in response.xpath('//ul/li[@class="mc"]'):
+
+            #  This will grab the date from the reported sell or buy.
+            date = self.getEntry('date',sel)
+
+            #  Getting stock symbol
+            symbol = self.getEntry('symbol', sel)
+
+            #  This will grab the title of the reported sell or buy.
+            title = self.getEntry('title', sel)
+
+            #  This will grab the link to the reported sell or buy.
+            link = self.getEntry('link', sel)
+
+            #  This will be the page url
+            page_url = response.request.url
+
+            # print([date,symbol,title,link,page_url])
+
+            data_entries_dictionary = {
+                'date': self.convertTimestamp(date),
+                'symbol': symbol,
+                'title': title,
+                'link': link,
+                'page_url': response.request.url
+            }
+
+
+            #  Inserting entries in database.
+            self.databaseInsert(data_entries_dictionary)
 
         # for sel in response.xpath('//ul/li[@class="mc"]/div[@class="media-body"]/div[@class="title"]'):
 
         #  Getting next link
         next_link = base_url + \
                     response.xpath('//ul[@class="list-inline"]/li[@class="next"]/a/@href').extract()[0]
-        #
-        #
+        # #
+        # #
         print('On page: ' + next_link)
         if next_link is not None:
             #  Sleeping for 20 seconds
