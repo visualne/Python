@@ -2,7 +2,7 @@ import scrapy,re,datetime,random,time
 from ..db_interaction import db_interaction
 from ..config import config
 
-#  Left off creating regular expressions for each type of timestamp
+#  Need to escape ' from title strings.
 
 class AlphaSpider(scrapy.Spider):
     name = 'alphaScrape'
@@ -10,7 +10,6 @@ class AlphaSpider(scrapy.Spider):
     start_urls = [
         # 'file:///Users/none/Desktop/Sort/MISC/Python/exercises/github/Python/BuysAndSells/scrapy/alpha/alpha/page9.html'
         'https://seekingalpha.com/market-news/m-a'
-        # 'https://seekingalpha.com/market-news/m-a?page=3'
     ]
 
     def convertTimestamp(self,timestamp):
@@ -100,10 +99,6 @@ class AlphaSpider(scrapy.Spider):
         else:
             return timestamp
 
-        #  Example timestamp
-        # timestamp_one.match('Mar. 21, 2019, 1:26 AM').group()
-        # Tue, Apr. 13, 9:52 AM
-
     def getEntry(self,type_of_data,sel):
 
         xpathDictionary = {
@@ -139,12 +134,7 @@ class AlphaSpider(scrapy.Spider):
 
         base_url = 'https://seekingalpha.com'
 
-        #  Formats of date
-        #  Mar. 21, 2019, 1:26 PM regex = \w{3}\. \d{1,2}, \d{4}, \d{1,2}:\d{1,2} \W{2}')
-        #  Thu, Apr. 22, 4:56 PM
-        #  Today
-
-        #     #  For loop to grab reported information for each sell or buy.
+        #  For loop to grab reported information for each sell or buy.
         for sel in response.xpath('//ul/li[@class="mc"]'):
 
             #  This will grab the date from the reported sell or buy.
@@ -162,8 +152,7 @@ class AlphaSpider(scrapy.Spider):
             #  This will be the page url
             page_url = response.request.url
 
-            # print([date,symbol,title,link,page_url])
-
+            #  Creating data dictionary that will be passed to the database.
             data_entries_dictionary = {
                 'date': self.convertTimestamp(date),
                 'symbol': symbol,
@@ -176,13 +165,11 @@ class AlphaSpider(scrapy.Spider):
             #  Inserting entries in database.
             self.databaseInsert(data_entries_dictionary)
 
-        # for sel in response.xpath('//ul/li[@class="mc"]/div[@class="media-body"]/div[@class="title"]'):
-
         #  Getting next link
         next_link = base_url + \
                     response.xpath('//ul[@class="list-inline"]/li[@class="next"]/a/@href').extract()[0]
-        # #
-        # #
+
+
         print('On page: ' + next_link)
         if next_link is not None:
             #  Sleeping for 20 seconds
