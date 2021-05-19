@@ -119,8 +119,6 @@ class AlphaSpider(scrapy.Spider):
 
     def databaseInsert(self,data_entries):
 
-        # print(data_entries)
-
         db_interaction_object = db_interaction('127.0.0.1',
                                                config.username,
                                                config.password)

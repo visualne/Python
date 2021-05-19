@@ -34,8 +34,6 @@ class db_interaction:
         #  Getting cursor object.
         cur = self.cnx.cursor(buffered=True)
 
-        #  Arguments for inserting into transactions table.
-
         #  Arguments for inserting data from file into a table.
         insert_transactions_table_args = ['table','data']
 
