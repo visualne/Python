@@ -25,6 +25,10 @@ class db_interaction:
             else:
                 print(err)
 
+    '''This function create insert query based on values sent in.'''
+    def create_insert_query(self,**kwargs):
+        pass
+
     '''This function inserts a specific record into a database.'''
     def insert(self,**kwargs):
 
@@ -45,6 +49,9 @@ class db_interaction:
 
             for k,v in data.items():
                 print(k,v)
+
+            #  Creating insert query.
+            insert_query = create_insert_query(**kwargs)
 
             insert_query = (
                     'INSERT INTO ' + table +

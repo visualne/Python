@@ -1,6 +1,6 @@
-import scrapy,re,datetime,random,time
-from ..db_interaction import db_interaction
-from ..config import config
+import scrapy,re,datetime, time
+from github.Python.BuysAndSells.companies.extras.db_interaction import db_interaction
+from github.Python.BuysAndSells.companies.extras.config import config
 
 #  Need to escape ' from title strings.
 
