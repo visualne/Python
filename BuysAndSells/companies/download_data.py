@@ -7,9 +7,13 @@ from extras.config import config
 
 class download_russell3000:
     def __init__(self):
-        db_interaction('127.0.0.1',
-                       config.username,
-                       config.password)
+        #  Creating db interaction object
+        self.db_interactionObject = db_interaction('127.0.0.1',
+                                                   config.username,
+                                                   config.password)
+
+        #  Connecting to database
+        self.db_interactionObject.connect()
 
 
     def get_textual_data_from_pdf(self):
@@ -85,8 +89,8 @@ class download_russell3000:
 
     def russell_list_insert(self):
 
-        #  Creating empty dictionary that will hold the russell3000 data
-        russell3000_dictionary = {}
+        #  Drop existing table/create table
+        self.db_interactionObject.drop_create_table(table='russell3000')
 
         #  Opening file for reading
         f = open('downloads/russell_3000_list/russell_3000_list.csv','r')
@@ -102,29 +106,36 @@ class download_russell3000:
                 #  that means there is two companies in the list
                 #  if the length is two that means there is only one
                 #  company in the list.
-                if len(company_data[:-1])  == 4:
-                    print(company_data)
+                if len(company_data[:-1]) == 4:
+
                     company_one = company_data[:-1][0]
                     ticker_one = company_data[:-1][1]
 
                     company_two = company_data[:-1][2]
                     ticker_two = company_data[:-1][3]
 
-                    russell3000_dictionary['table'] = 'russell3000'
-                    russell3000_dictionary['data'] = {'company':company_one,
-                                                      'symbol':ticker_one}
-
-                    print(russell3000_dictionary)
+                    #  Inserting first company
+                    self.db_interactionObject.insert(table = 'russell3000',
+                                               data = {'company':company_one,
+                                                       'ticker':ticker_one
+                                                       })
+                    #  Inserting second company
+                    self.db_interactionObject.insert(table = 'russell3000',
+                                               data = {'company':company_two,
+                                                       'ticker':ticker_two
+                                                       })
 
                 elif len(company_data[:-1])  == 2:
-                    pass
+                    company_one = company_data[:-1][0]
+                    ticker_one = company_data[:-1][1]
+
+                    #  Inserting first company
+                    self.db_interactionObject.insert(table = 'russell3000',
+                                               data = {'company':company_one,
+                                                       'ticker':ticker_one
+                                                       })
                 else:
                     pass
-
-
-                #  Printing everything but newline character at the end.
-                # print(company_data[:-1])
-                # russell3000_dictionary['']
 
         f.close()
 
