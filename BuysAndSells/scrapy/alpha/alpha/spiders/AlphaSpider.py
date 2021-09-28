@@ -1,6 +1,6 @@
 import scrapy,re,datetime, time
-from github.Python.BuysAndSells.companies.extras.db_interaction import db_interaction
-from github.Python.BuysAndSells.companies.extras.config import config
+from .extras.db_interaction import db_interaction
+from .extras.config import config
 
 #  Need to escape ' from title strings.
 
@@ -8,7 +8,6 @@ class AlphaSpider(scrapy.Spider):
     name = 'alphaScrape'
 
     start_urls = [
-        # 'file:///Users/none/Desktop/Sort/MISC/Python/exercises/github/Python/BuysAndSells/scrapy/alpha/alpha/page9.html'
         'https://seekingalpha.com/market-news/m-a'
     ]
 

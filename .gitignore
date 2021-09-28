@@ -1,3 +1,4 @@
 .*
 project/
 BuysAndSells/companies/extras/config.py
+BuysAndSells/companies/scrapy/alpha/alpha/spiders/extras/config.py
