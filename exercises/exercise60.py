@@ -14,6 +14,31 @@ M=21
 # 5->11 (+6)
 # 6->13 (+7)
 
+
+
+    # ---------.|.---------
+    # ------.|..|..|.------
+    # ---.|..|..|..|..|.---
+    # -------WELCOME-------
+    # ---.|..|..|..|..|.---
+    # ------.|..|..|.------
+    # ---------.|.---------
+
+
+
+    # ---------------.|.---------------
+    # ------------.|..|..|.------------
+    # ---------.|..|..|..|..|.---------
+    # ------.|..|..|..|..|..|..|.------
+    # ---.|..|..|..|..|..|..|..|..|.---
+    # -------------WELCOME-------------
+    # ---.|..|..|..|..|..|..|..|..|.--- 6,9
+    # ------.|..|..|..|..|..|..|.------ 7,7
+    # ---------.|..|..|..|..|.--------- 8,5
+    # ------------.|..|..|.------------ 9,3
+    # ---------------.|.--------------- 10,1
+
+
 def generate_symbols(line_num):
 
     symbol = '.|.'
@@ -22,12 +47,12 @@ def generate_symbols(line_num):
         number_of_symbols = 1
     else:
         number_of_symbols = (line_num + 1) + line_num
-
+        
     sample_string = ''
     for something in range(number_of_symbols):
         sample_string = sample_string + symbol
 
-    return sample_string
+    return (number_of_symbols,sample_string)
 
 
 #  Finding middle of doormat
@@ -36,14 +61,17 @@ if N % 2 == 0:
 else:
     middle = (N / 2) + 1
 
-print(N)
-print(middle)
+#  Line number and vertical dash dictionary
+line_num_dictionary = {}
 
 
 for val in range(N):
 
-    #  Generating symbols
-    symbols_generated = generate_symbols(val)
+    num_vertical_symbols_and_vertical_symbols_tuple = generate_symbols(val)
+
+    #  Number of vertical symbols generated
+    num_vertical_symbols = num_vertical_symbols_and_vertical_symbols_tuple[0]
+    symbols_generated = num_vertical_symbols_and_vertical_symbols_tuple[1]
 
     #  Checking for the middle of the mat and printing
     #  Welcome
@@ -55,8 +83,10 @@ for val in range(N):
     #  Getting everything after middle of mat.
     if (val <= middle - 2):
         #  Printing vertical dashes on front and back of line.
-        number_of_horizontal_dashes = (M - len(generate_symbols(val))) / 2
+        number_of_horizontal_dashes = (M - len(symbols_generated)) / 2
         horizontal_dashes = number_of_horizontal_dashes*'-'
+
+        line_num_dictionary[val] = num_vertical_symbols
 
         print(horizontal_dashes+symbols_generated+horizontal_dashes)
     else:
