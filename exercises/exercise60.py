@@ -17,7 +17,7 @@ def generate_symbols(line_num):
         number_of_symbols = (line_num + 1) + line_num
         
     sample_string = ''
-    for something in range(number_of_symbols):
+    for val in range(number_of_symbols):
         sample_string = sample_string + symbol
 
     return (number_of_symbols,sample_string)
@@ -39,14 +39,16 @@ for val in range(0,N-1):
 
     #  Number of vertical symbols generated
     num_vertical_symbols = num_vertical_symbols_and_vertical_symbols_tuple[0]
+    #  Actual string of '.|.' 
     symbols_generated = num_vertical_symbols_and_vertical_symbols_tuple[1]
 
     #  Printing vertical dashes on front and back of line.
     number_of_horizontal_dashes = (M - len(symbols_generated)) / 2
+    #  String of -----
     horizontal_dashes = number_of_horizontal_dashes*'-'
 
     #  Checking for the middle of the mat and printing
-    #  Welcome
+    #  WELCOME
     if val == middle - 1:
         number_of_dashes = (M - 7) / 2
         dashes = number_of_dashes * '-'
